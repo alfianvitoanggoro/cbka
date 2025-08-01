@@ -1,0 +1,30 @@
+# Config file for air (hot reload)
+
+# Working directory
+root = "."
+tmp_dir = "bin"
+
+# Build settings
+[build]
+  cmd = "go build -buildvcs=false -o ./bin/go-kafka ./cmd/server"
+  bin = "bin/go-kafka"
+  full_bin = "./bin/go-kafka"
+  include_ext = ["go"]
+  exclude_dir = ["deploy", "bin"]
+  exclude_file = []
+  follow_symlink = true
+  delay = 1000
+
+# Log settings
+[log]
+  level = "debug"
+
+# Command settings
+[cmd]
+  after_build = "chmod +x ./bin/go-kafka && echo '✅ Build completed!'"
+
+# Watch settings
+[watch]
+  include_dir = ["."]
+  exclude_dir = ["deploy", "bin"]
+  poll_interval = 1000

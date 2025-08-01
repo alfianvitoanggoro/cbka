@@ -1,0 +1,70 @@
+services:
+  app:
+    container_name: ${APP_NAME}-app
+    build:
+      context: ../../
+      dockerfile: deploy/docker/Dockerfile
+      target: development
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    volumes:
+      - ../../:/app
+    working_dir: /app
+    env_file:
+      - ../../.env
+    depends_on:
+      - postgres
+      - kafka
+    networks:
+      - gk-net
+    command: air -c .air.toml
+
+  postgres:
+    container_name: ${APP_NAME}-postgres
+    image: postgres:15
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - gk-net
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: ${APP_NAME}-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - gk-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: ${APP_NAME}-kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: ${APP_NAME}-zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - gk-net
+
+volumes:
+  postgres-data:
+
+networks:
+  gk-net:
+    name: gk-net
+    driver: bridge
