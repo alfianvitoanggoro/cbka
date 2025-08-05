@@ -38,7 +38,7 @@ run-build:
 # Development Docker commands
 docker-up:
 	@echo "Building Docker image for development..."
-	docker compose \
+	COMPOSE_BAKE=true docker compose \
 	-f deploy/docker/docker-compose.yml \
 	--env-file .env \
 	--project-name go-kafka \
@@ -82,6 +82,18 @@ migrate-down-all:
 migrate-force:
 	@read -p "Enter target version: " version; \
 	$(MIGRATE_BIN) -path $(MIGRATION_DIR) -database "$(DB_URL)" force $$version
+
+# KAFKA
+## Run it before create-topic docker exec -it go-kafka-kafka /bin/bash
+create-topic:
+	@read -p "Enter topic name: " topic; \
+	kafka-topics \
+	--create \
+	--bootstrap-server localhost:${KAFKA_PORT} \
+	--replication-factor 1 \
+	--partitions 1 \
+	--topic ${KAFKA_TOPIC}
+
 
 ## Show help
 help:

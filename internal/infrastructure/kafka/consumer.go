@@ -3,7 +3,9 @@ package kafka
 import (
 	"context"
 	"fmt"
+	"go-kafka/pkg/logger"
 
+	"github.com/hamba/avro"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -30,4 +32,33 @@ func (k *KafkaClient) Consume(handler func(msg kafka.Message)) error {
 		}
 		handler(msg)
 	}
+}
+
+// ConsumeAvro reads and processes Kafka messages using Avro decoding
+func (k *KafkaClient) ConsumeAvro() error {
+	reader := k.NewReader()
+	defer reader.Close()
+
+	ctx := context.Background()
+	for {
+		msg, err := reader.ReadMessage(ctx)
+		if err != nil {
+			return fmt.Errorf("error reading message: %w", err)
+		}
+
+		var ur UserReconcile
+		err = avro.Unmarshal(SchemaStr, msg.Value, &ur)
+		if err != nil {
+			logger.Errorf("❌ Failed to decode Avro message: %v", err)
+			continue
+		}
+
+		// Call internal handler
+		handleUserReconcile(ur)
+	}
+}
+
+// handleUserReconcile is the internal handler for decoded messages
+func handleUserReconcile(data UserReconcile) {
+	logger.Infof("📥 [Kafka] Received user reconcile: %+v", data)
 }

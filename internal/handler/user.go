@@ -7,6 +7,7 @@ import (
 
 	"go-kafka/internal/dto"
 	"go-kafka/internal/usecase"
+	"go-kafka/pkg/response"
 )
 
 type UserHandler struct {
@@ -22,20 +23,19 @@ func NewUserHandler(uc *usecase.UserUsecase) *UserHandler {
 func (h *UserHandler) UserReconcile(w http.ResponseWriter, r *http.Request) {
 	var req dto.RequestUserReconcile
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid JSON body", http.StatusBadRequest)
+		response.WriteError(w, http.StatusBadRequest, "Invalid request", err.Error())
 		return
 	}
 
 	if req.TriggeredBy == "" {
-		http.Error(w, "triggered_by is required", http.StatusBadRequest)
+		response.WriteError(w, http.StatusBadRequest, "TriggeredBy is required", "TriggeredBy cannot be empty")
 		return
 	}
 
 	if err := h.usecase.UserReconcile(req.TriggeredBy); err != nil {
-		http.Error(w, "failed to trigger reconcile: "+err.Error(), http.StatusInternalServerError)
+		response.WriteError(w, http.StatusInternalServerError, "Failed to trigger reconcile", err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Reconcile triggered successfully"))
+	response.WriteSuccess(w, http.StatusOK, "Reconcile triggered successfully", nil)
 }

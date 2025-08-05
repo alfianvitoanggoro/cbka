@@ -34,7 +34,8 @@ type Database struct {
 }
 
 type Kafka struct {
-	Broker  string
+	Host    string
+	Port    int
 	Topic   string
 	GroupID string
 }
@@ -75,7 +76,8 @@ func LoadDatabaseConfig() *Database {
 
 func LoadKafkaConfig() *Kafka {
 	return &Kafka{
-		Broker:  getEnv("KAFKA_BROKER", "localhost:9092"),
+		Host:    getEnv("KAFKA_HOST", "localhost"),
+		Port:    getEnvAsInt("KAFKA_PORT", 9092),
 		Topic:   getEnv("KAFKA_TOPIC_RECONCILE_USER", "reconcile-user-topic"),
 		GroupID: getEnv("KAFKA_GROUP_ID", "go-kafka-group-id"),
 	}

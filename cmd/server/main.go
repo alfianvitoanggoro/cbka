@@ -29,19 +29,17 @@ func program(state overseer.State) {
 		logger.Errorf("❌ Error connecting to DB: %v", err)
 	}
 
-	kafkaProducer := kafka.NewKafkaClient(cfg.Kafka)
+	kafkaClient := kafka.NewKafkaClient(cfg.Kafka)
 
 	go func() {
-		err := kafkaProducer.Produce("health-check", "connected")
+		err = kafkaClient.ConsumeAvro()
 		if err != nil {
-			logger.Errorf("❌ Kafka health-check failed: %v", err)
-		} else {
-			logger.Infof("✅ Kafka health-check message sent")
+			logger.Fatalf("Kafka consumer error: %v", err)
 		}
 	}()
 
 	// Factory
-	f := factory.NewFactory(dbConn, kafkaProducer)
+	f := factory.NewFactory(dbConn, kafkaClient)
 
 	// Init routes using factory
 	r := routes.InitRouter(f)

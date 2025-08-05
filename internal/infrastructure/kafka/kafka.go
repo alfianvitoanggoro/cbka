@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"fmt"
 	"go-kafka/internal/config"
 	"go-kafka/pkg/logger"
 )
@@ -12,9 +13,9 @@ type KafkaClient struct {
 }
 
 func NewKafkaClient(ConfigKafka *config.Kafka) *KafkaClient {
-	brokers := []string{ConfigKafka.Broker}
+	brokers := []string{fmt.Sprintf("%s:%d", ConfigKafka.Host, ConfigKafka.Port)}
 
-	logger.Infof("✅ Kafka client initialized. Brokers: %v, Topic: %s, GroupID: %s", brokers, ConfigKafka.Topic, ConfigKafka.GroupID)
+	logger.Info("✅ Kafka client initialized Successfully")
 
 	return &KafkaClient{
 		Brokers: brokers,

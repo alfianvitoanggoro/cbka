@@ -1,8 +1,6 @@
 package usecase
 
 import (
-	"encoding/json"
-	"fmt"
 	"go-kafka/internal/infrastructure/kafka"
 	"go-kafka/internal/repository"
 	"time"
@@ -18,16 +16,11 @@ func NewUserUsecase(repo repository.UserRepository, kafka kafka.Producer) *UserU
 }
 
 func (u *UserUsecase) UserReconcile(userId string) error {
-	payload := map[string]string{
-		"user_id":   userId,
-		"action":    "user.reconcile",
-		"timestamp": fmt.Sprintf("%d", time.Now().UnixMilli()),
+	payload := kafka.UserReconcile{
+		UserID:    userId,
+		Action:    "user.reconcile",
+		Timestamp: time.Now().Format(time.RFC3339), // bisa juga pakai UnixMilli jika konsisten
 	}
 
-	jsonVal, err := json.Marshal(payload)
-	if err != nil {
-		return err
-	}
-
-	return u.kafka.PublishMessage([]byte(userId), jsonVal)
+	return u.kafka.ProduceAvro(userId, payload)
 }
