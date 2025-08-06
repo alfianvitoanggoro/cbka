@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 )
 
 type Config struct {
@@ -34,10 +35,11 @@ type Database struct {
 }
 
 type Kafka struct {
-	Host    string
-	Port    int
-	Topic   string
-	GroupID string
+	Brokers  []string
+	Topic    string
+	GroupID  string
+	Username string
+	Password string
 }
 
 func LoadConfig() *Config {
@@ -76,10 +78,11 @@ func LoadDatabaseConfig() *Database {
 
 func LoadKafkaConfig() *Kafka {
 	return &Kafka{
-		Host:    getEnv("KAFKA_HOST", "localhost"),
-		Port:    getEnvAsInt("KAFKA_PORT", 9092),
-		Topic:   getEnv("KAFKA_TOPIC_RECONCILE_USER", "reconcile-user-topic"),
-		GroupID: getEnv("KAFKA_GROUP_ID", "go-kafka-group-id"),
+		Brokers:  strings.Split(getEnv("KAFKA_BROKER", "localhost:9092"), ","),
+		Topic:    getEnv("KAFKA_TOPIC_RECONCILE_USER", "reconcile-user-topic"),
+		GroupID:  getEnv("KAFKA_GROUP_ID", "go-kafka-group-id"),
+		Username: getEnv("KAFKA_USERNAME", "admin"),
+		Password: getEnv("KAFKA_PASSWORD", "password"),
 	}
 }
 
